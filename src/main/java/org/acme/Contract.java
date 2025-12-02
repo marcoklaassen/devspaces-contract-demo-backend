@@ -20,11 +20,20 @@ public class Contract {
     @Column(length = 40)
     public String customer;
 
+    @Column
+    public Boolean firstContractOfCustomer;
+
     public Contract() {
     }
 
     public Contract(String type, String customer) {
         this.type = type;
         this.customer = customer;
+    }
+
+    public Contract(String type, String customer, Boolean firstContractOfCustomer) {
+        this.type = type;
+        this.customer = customer;
+        this.firstContractOfCustomer = firstContractOfCustomer;
     }
 }

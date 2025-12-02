@@ -2,6 +2,7 @@ package org.acme;
 
 import java.util.List;
 
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,10 @@ public class ContractResource {
     @Inject
     ContractRepository contractRepository;
 
+    @Inject
+    @RestClient
+    CustomerApiClient customerApiClient;
+
     private static final Logger LOGGER = Logger.getLogger(ContractResource.class.getName());
 
     @GET
@@ -54,6 +59,30 @@ public class ContractResource {
     public Response create(Contract contract) {
         if (contract.id != null) {
             throw new WebApplicationException("Id was invalidly set on request.", 422);
+        }
+
+        if (contract.customer == null || contract.customer.isBlank()) {
+            throw new WebApplicationException("Customer name must be provided.", 422);
+        }
+
+        // Check if customer already exists
+        try {
+            List<Customer> existingCustomers = customerApiClient.getCustomerByName(contract.customer);
+            
+            if (existingCustomers != null && !existingCustomers.isEmpty()) {
+                // Customer exists, set firstContractOfCustomer to true as per requirement
+                contract.firstContractOfCustomer = false;
+                LOGGER.info("Customer " + contract.customer + " already exists. Setting firstContractOfCustomer to true.");
+            } else {
+                // Customer doesn't exist, create it and set firstContractOfCustomer to false
+                Customer newCustomer = new Customer(contract.customer);
+                customerApiClient.createCustomer(newCustomer);
+                contract.firstContractOfCustomer = true;
+                LOGGER.info("Created new customer " + contract.customer + ". Setting firstContractOfCustomer to false.");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error checking/creating customer: " + e.getMessage(), e);
+            throw new WebApplicationException("Failed to check or create customer: " + e.getMessage(), 500);
         }
 
         contractRepository.persist(contract);
