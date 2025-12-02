@@ -72,13 +72,13 @@ public class ContractResource {
             if (existingCustomers != null && !existingCustomers.isEmpty()) {
                 // Customer exists, set firstContractOfCustomer to true as per requirement
                 contract.firstContractOfCustomer = false;
-                LOGGER.info("Customer " + contract.customer + " already exists. Setting firstContractOfCustomer to true.");
+                LOGGER.info("Customer " + contract.customer + " already exists. Setting firstContractOfCustomer to false.");
             } else {
                 // Customer doesn't exist, create it and set firstContractOfCustomer to false
                 Customer newCustomer = new Customer(contract.customer);
                 customerApiClient.createCustomer(newCustomer);
                 contract.firstContractOfCustomer = true;
-                LOGGER.info("Created new customer " + contract.customer + ". Setting firstContractOfCustomer to false.");
+                LOGGER.info("Created new customer " + contract.customer + ". Setting firstContractOfCustomer to true.");
             }
         } catch (Exception e) {
             LOGGER.error("Error checking/creating customer: " + e.getMessage(), e);
